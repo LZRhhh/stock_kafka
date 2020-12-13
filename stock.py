@@ -29,7 +29,7 @@ def get_quotes(symbols):
         symbol = symbols[i]
         line = lines[i]
         price = re.findall(",(.*?),", line)[0]
-        quotes.append({'symbol': symbol, 'price': float(price)})
+        quotes.append(symbol + '\t' + price)
     return quotes
 
 
