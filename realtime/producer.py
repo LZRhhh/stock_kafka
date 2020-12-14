@@ -1,7 +1,7 @@
 import time
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
-from stock_kafka.stock import get_quote
+from stock_kafka.realtime.stock import get_quote
 
 producer = KafkaProducer(bootstrap_servers=['localhost:9092'])
 # Assign a topic
@@ -12,12 +12,12 @@ symbol = 'GOOG'
 def test():
     print('begin')
     try:
-        for i in range(1000):
+        while True:
             price = get_quote(symbol)
             line = symbol + '\t' + price
             producer.send(topic, line.encode())
             print("send " + line)
-            time.sleep(1)
+            time.sleep(60)
     except KafkaError as e:
         print(e)
     finally:

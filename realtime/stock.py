@@ -3,17 +3,34 @@ import re
 
 base_url = 'http://hq.sinajs.cn/'
 
+map = {'Dec': 12}
 
 def get_quote(symbol):
     sym = 'gb_' + symbol.lower()
     params = {
         'list': sym
     }
-    res = requests.get(url='http://hq.sinajs.cn/', params=params)
+    res = requests.get(url=base_url, params=params)
     line = res.text
-    print('Data received: ' + symbol)
-    price = re.findall(",(.*?),", line)[0]
-    return price
+    # print('Data received: ' + symbol)
+    strs = re.findall(",(.*?),", line)
+    price = strs[0]
+    time = get_time(strs[12])
+    return symbol, price, time
+
+
+def get_time(str):
+
+    # Dec 11 04:00PM EST
+    month, day, clock, zone = str.split(' ')
+    month = map[month]
+    time = clock[:5]
+    noon = clock[-2:]
+    h, m = time.split(':')
+    h = int(h)
+    if noon == 'PM':
+        h += 12
+    return '%s-%s-%s %s:%s:00' % (2020, month, day, h, m)
 
 
 def get_quotes(symbols):
@@ -34,6 +51,8 @@ def get_quotes(symbols):
 
 
 if __name__ == '__main__':
-    symbol = 'GOOG'
-    print(symbol, get_quote(symbol))
+    symbol = 'AAPL'
+
+    print(get_quote(symbol))
+    # print(get_time('04:00PM'))
     # print(get_quotes(['GOOG', 'AAPL']))
