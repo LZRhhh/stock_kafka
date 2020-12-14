@@ -6,11 +6,13 @@ params = {
     'function': 'TIME_SERIES_DAILY',
     'symbol': 'IBM',
     'outputsize': 'compact',
-    'apikey': 'Y2617R1QN0XGOBFN'
+    'apikey': 'Y2617R1QN0XGOBFN',
+    'internal': '1min'
 }
-
-res = requests.get(url=base_url, params=params).json()
-symbol = res['Meta Data']['2. Symbol']
-quotes = res['Time Series (Daily)']
-print(symbol)
-print(quotes)
+for i in range(10):
+    res = requests.get(url=base_url, params=params).json()
+    print(res)
+# symbol = res['Meta Data']['2. Symbol']
+# quotes = res['Time Series (Daily)']
+# print(symbol)
+# print(quotes)
