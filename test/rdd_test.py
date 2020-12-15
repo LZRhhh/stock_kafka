@@ -1,45 +1,46 @@
-from __future__ import print_function
-
-import json
-import sys
-import findspark
-from operator import add
-
-findspark.init()
-
 from pyspark import SparkContext
 
+from stock import get_quote
 
-def split_count(data):
-    symbol, price = data.split('\t')
-    return symbol, (float(price), 1)
+sc = SparkContext(appName="streamingkafka")
 
-
-def split(data):
-    symbol, price = data.split('\t')
-    return symbol, float(price)
-
-
-def join(rdd, queue):
-    print(queue.join(rdd).collect())
+symbols = ['GOOG', 'AAPL', 'FB', 'AMZN', 'MSFT']
+var = []
+for symbol in symbols:
+    symbol, price, time = get_quote(symbol)
+    for i in range(5):
+        var = var + [(symbol, (float(price)+i, time))]
 
 
-if __name__ == "__main__":
-    sc = SparkContext(appName="streamingkafka")
-    sc.setLogLevel("WARN")  # 减少shell打印日志
-    # 使用streaming使用直连模式消费kafka
-    var1 = [('GOOG', 1), ('AAPL', 1)]
-
-    var2 = []
-    for i in range(100):
-        var2.append(('GOOG', i))
-        var2.append(('AAPL', i))
-    queue = sc.parallelize(var1)
-    new = sc.parallelize(var2)
-    rdd = queue.cogroup(new)
-    print(rdd.collect())
+def get_per(opens, closes):
+    per = {}
+    for symbol in symbols:
+        per[symbol] = (closes[symbol][0] / opens[symbol][0] - 1) * 100
+        if per[symbol] >= 0:
+            per[symbol] = str(per[symbol]) + '↑'
+        else:
+            per[symbol] = str(per[symbol]) + '↓'
+    return per
 
 
-        # .reduceByKey(lambda x, y: x.extend(y))
+def _time(tuple):
+    return tuple[1][1]
 
 
+def to_map(rdd):
+    arr = rdd.collect()
+    map = {}
+    for tuple in arr:
+        map[tuple[0]] = tuple[1]
+    return map
+
+queue = sc.parallelize(var)
+# for tuple in queue.collect():
+#     print(tuple)
+close = queue.reduceByKey(lambda x, y: max(x, y, key=_time))
+open = queue.reduceByKey(lambda x, y: min(x, y, key=_time))
+closes = to_map(close)
+opens = to_map(open)
+pers = get_per(opens, closes)
+
+print(pers)
