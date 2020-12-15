@@ -3,7 +3,7 @@
 '''
 Author: Jin X
 Date: 2020-12-15 15:57:07
-LastEditTime: 2020-12-15 19:31:34
+LastEditTime: 2020-12-15 21:02:00
 '''
 
 from pyspark import SparkContext, SparkConf
@@ -46,7 +46,7 @@ def floorAndCeil(day):
         ceilTime = timedelta(days=-3, seconds=dt.second, microseconds=dt.microsecond,
                              milliseconds=0, minutes=dt.minute, hours=dt.hour, weeks=0)
     newCeilTime = dt - ceilTime
-    return str(dt), str(newCeilTime)
+    return dt.strftime("%Y-%m-%d"), newCeilTime.strftime("%Y-%m-%d")
 
 
 # k = s.reduce(lambda x, y: (x[1] + y[1]))
@@ -77,6 +77,12 @@ rdd = rdd.reduceByKey(reduceFunc) \
 
 pdDF = rdd.toDF(["time", "growth"]).toPandas()
 
+closeInfo = pd.read_csv('./input/daily_GOOG.csv', usecols=['time','close'])
+
+pdDF = pd.merge(pdDF, closeInfo, how="left", on="time", copy=False)
+
+
+
 pdDF["color"] = pdDF.apply(lambda x: 'raise' if x.growth > 0 else 'drop', axis=1)
 
 
@@ -85,7 +91,11 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 
-fig = px.bar(pdDF, x="time", y="growth", color="color")
+fig = px.line(pdDF, x="time", y="close")
+fig.add_bar(x=pdDF['time'], y=pdDF["growth"])
+# fig = px.bar(pdDF, x="time", y="growth", color='color')
+# fig.add_line(x=pdDF['time'], y=pdDF['close'])
+
 
 
 app.layout = html.Div(children=[
