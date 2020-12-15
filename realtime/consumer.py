@@ -70,9 +70,10 @@ def process_stream(rdd, tmp):
                 per[symbol] = str(per[symbol]) + '% ↓'
         return per
 
-    print('================', datetime.now().replace(microsecond=0), '=================')
+    print('======================', datetime.now().replace(microsecond=0), '=======================')
     queue = tmp[0]
     queue = queue.union(rdd).filter(is_valid)
+
     # print('quotes:', queue.collect())
     prices = queue.map(lambda x: (x[0], x[1][0]))
     # print(prices.collect())

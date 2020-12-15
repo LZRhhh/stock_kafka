@@ -53,6 +53,6 @@ if __name__ == '__main__':
     topic = 'test'
     symbols = ['GOOG', 'AAPL', 'FB', 'AMZN', 'MSFT']
     for symbol in symbols:
-        schedule.add_job(fetch_stock, 'interval', args=[symbol], seconds=59, id=symbol)  # every second run fetch_price
+        schedule.add_job(fetch_stock, 'interval', args=[symbol], seconds=30, id=symbol)  # every second run fetch_price
     schedule.start()
     # test2(symbols)

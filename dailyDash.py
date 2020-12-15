@@ -11,7 +11,7 @@ import dash_html_components as html
 import plotly.express as px
 import pandas as pd
 
-stocks = pd.read_csv('./input/daily_GOOG.csv', usecols=['time','close'])
+stocks = pd.read_csv('./input/daily_GOOG.csv', usecols=['time', 'close'])
 
 print(stocks)
 
