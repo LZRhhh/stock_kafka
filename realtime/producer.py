@@ -19,9 +19,9 @@ def get_session():
     return session
 
 
-def persist_stock(symbol, price, time):
-    statement = "INSERT INTO %s (symbol, price, time) VALUES ('%s', %f, '%s')" % (table, symbol, price, time)
-    session.execute(statement)
+# def persist_stock(symbol, price, time):
+#     statement = "INSERT INTO %s (symbol, price, time) VALUES ('%s', %f, '%s')" % (table, symbol, price, time)
+#     session.execute(statement)
 
 
 def fetch_stock(symbol):
@@ -29,7 +29,7 @@ def fetch_stock(symbol):
     msg = '\t'.join([symbol, price, time])
     producer.send(topic, msg.encode())
     # print("send", msg)
-    persist_stock(symbol, float(price), time)
+    # persist_stock(symbol, float(price), time)
     print(msg)
 
 

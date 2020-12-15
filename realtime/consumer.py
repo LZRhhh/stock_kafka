@@ -1,6 +1,6 @@
 from datetime import datetime
 import datetime as dt
-from db import key_space, stat_table
+from db import key_space, stat_table, quote_table, init_db
 
 import findspark
 
@@ -39,7 +39,8 @@ def is_valid(tuple):
     start = datetime.strptime(today + ' 09:30', '%Y-%m-%d %H:%M')
     end = datetime.strptime(today + ' 16:00', '%Y-%m-%d %H:%M')
     if start <= now <= end:
-        time = datetime.strptime(tuple[1][1], '%Y-%m-%d %H:%M:%s')
+        # print(tuple)
+        time = datetime.strptime(tuple[1][1], '%Y-%m-%d %H:%M:%S')
         delta = now - time
         if delta.seconds <= 1200:
             return True
@@ -73,7 +74,7 @@ def process_stream(rdd, tmp):
     print('======================', datetime.now().replace(microsecond=0), '=======================')
     queue = tmp[0]
     queue = queue.union(rdd).filter(is_valid)
-
+    queue = queue.repartition(4)
     # print('quotes:', queue.collect())
     prices = queue.map(lambda x: (x[0], x[1][0]))
     # print(prices.collect())
@@ -92,8 +93,11 @@ def process_stream(rdd, tmp):
     # ==========================================================
     # open, close, incr percentage
     # ==========================================================
-    close = queue.reduceByKey(lambda x, y: max(x, y, key=_time))
-    open = queue.reduceByKey(lambda x, y: min(x, y, key=_time))
+    # print(queue.collect())
+    close = queue.reduceByKey(lambda x, y: max(x, y, key=lambda s: s[1]))
+    open = queue.reduceByKey(lambda x, y: min(x, y, key=lambda s: s[1]))
+    # print(close.collect())
+    # print(open.collect())
     closes = to_map(close)
     opens = to_map(open)
     pers = get_per(opens, closes)
@@ -104,15 +108,26 @@ def process_stream(rdd, tmp):
         print('%-10s%-10s%-10s%-10s%-10s%-10s%-10s' % (symbol, opens[symbol][0], mins[symbol], maxs[symbol],
                                                        closes[symbol][0], round(means[symbol], 2), pers[symbol]))
 
-        persist_stat(symbol, opens[symbol][0], mins[symbol], maxs[symbol], closes[symbol][0], round(means[symbol], 2),
+        persist_stat(symbol,
+                     datetime.now().replace(second=0, microsecond=0),
+                     opens[symbol][0],
+                     mins[symbol],
+                     maxs[symbol],
+                     closes[symbol][0],
+                     round(means[symbol], 2),
                      pers[symbol])
-
     tmp[0] = queue
 
 
-def persist_stat(symbol, open, min, max, close, mean, per):
-    statement = "INSERT INTO %s (symbol, open, min, max, close, mean, per) VALUES ('%s', %f, %f, %f, %f, %f, %f)" \
-                % (stat_table, symbol, open, min, max, close, mean, float(per.split('%')[0]))
+    # session.execute(
+    #     "CREATE TABLE %s (symbol text, time timestamp, open float, min float, max float, close float, mean float, "
+    #     "per float, PRIMARY KEY (symbol, time))" % quote_table)
+
+def persist_stat(symbol, time, open, min, max, close, mean, per):
+    # print(quote_table, symbol, str(time), open, min, max, close, mean, float(per.split('%')[0]))
+    statement = "INSERT INTO %s (symbol, time, open, min, max, close, mean, per) " \
+                "VALUES ('%s', '%s', %f, %f, %f, %f, %f, %f)"\
+                % (quote_table, symbol, str(time), open, min, max, close, mean, float(per.split('%')[0]))
     session.execute(statement)
     return
 
@@ -134,6 +149,7 @@ def init():
 
 
 if __name__ == "__main__":
+    init_db()
     session = get_session()
 
     sc = SparkContext(appName="streamingkafka")

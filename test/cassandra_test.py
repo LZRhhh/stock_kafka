@@ -26,22 +26,22 @@ if __name__ == '__main__':
     session.set_keyspace(key_space)
 
     df = pd.DataFrame()
-    statement = "select * from %s" % stat_table
+    statement = "select * from %s" % quote_table
     res = session.execute(statement)
     # for row in res:
     #     print(row)
     df = pd.DataFrame(list(res))
-    df = df.round(4)
-    # print(df)
-    app = dash.Dash(__name__)
-
-    app.layout = dash_table.DataTable(
-        id='table',
-        columns=[{"name": i, "id": i} for i in df.columns],
-        data=df.to_dict('records'),
-        style_table={'minWidth': '50%'}
-    )
-    app.run_server(debug=True)
+    df = df.round(2)
+    print(df)
+    # app = dash.Dash(__name__)
+    #
+    # app.layout = dash_table.DataTable(
+    #     id='table',
+    #     columns=[{"name": i, "id": i} for i in df.columns],
+    #     data=df.to_dict('records'),
+    #     style_table={'minWidth': '50%'}
+    # )
+    # app.run_server(debug=True)
     # sc = SparkContext()  # 连接spark
     #
     # sqlContest = SQLContext(sc)  # 连接sparksql

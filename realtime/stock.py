@@ -17,12 +17,12 @@ def get_quote(symbol):
     # print(strs)
     # print(strs[-10])
     price = strs[1]
-    time = get_time(strs[-10])
+    time = get_time(strs[-9])
     return symbol, price, time
 
 
 def get_time(str):
-    print(str)
+    # print(str)
     # Dec 11 04:00PM EST
     month, day, clock, zone = str.split(' ')
     month = map[month]

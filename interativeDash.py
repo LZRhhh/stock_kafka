@@ -53,8 +53,8 @@ def update_figure(n):
     #     print(row)
     df = pd.DataFrame(list(res))
     df = df.round(4)
-    print(df)
-    fig = px.line(df, x='time', y='price')
+    # print(df)
+    fig = px.line(df, x='time', y='close')
     return fig
 
 
