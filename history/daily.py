@@ -6,3 +6,4 @@ rdd = sc.textFile('daily_IBM.csv')
 rdd = rdd.flatMap(lambda x: x.split(','))
 print(rdd.collect())
 
+

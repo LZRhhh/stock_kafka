@@ -18,10 +18,17 @@ if __name__ == '__main__':
 
     key_space = 'stock'
     quote_table = 'quotes'
+    stat_table = 'stats'
     session = cassandra_cluster.connect()
     session.set_keyspace(key_space)
     statement = "select * from %s" % quote_table
     res = session.execute(statement)
+    for row in res:
+        print(row)
+
+    statement = "select * from %s" % stat_table
+    res = session.execute(statement)
+    print('test')
     for row in res:
         print(row)
 

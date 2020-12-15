@@ -22,9 +22,9 @@ def init_db():
         "CREATE TABLE %s (symbol text, time timestamp, price float, PRIMARY KEY ("
         "symbol, time))" % quote_table)
     session.execute("drop table if exists %s" % stat_table)
-    session.execute(
-        "CREATE TABLE %s (symbol text, min float, max float, mean float, PRIMARY KEY ("
-        "symbol))" % stat_table)
+    session.execute("CREATE TABLE %s "
+                    "(symbol text, open float, min float, max float, close float, mean float, per float, "
+                    "PRIMARY KEY (symbol))" % stat_table)
 
 
 if __name__ == '__main__':
