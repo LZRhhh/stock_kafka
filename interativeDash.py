@@ -55,8 +55,24 @@ app.layout = html.Div([
 
     html.H2(children='Real-Time'),
     html.H3(children='GOOG'),
-    dcc.Graph(id='real-time-goog'),
-    dcc.Graph(id='real-time-goog-mean'),
+    dcc.Graph(id='real-time-goog-price'),
+    dcc.Graph(id='real-time-goog-per'),
+
+    html.H3(children='AAPL'),
+    dcc.Graph(id='real-time-aapl-price'),
+    dcc.Graph(id='real-time-aapl-per'),
+
+    html.H3(children='FB'),
+    dcc.Graph(id='real-time-fb-price'),
+    dcc.Graph(id='real-time-fb-per'),
+
+    html.H3(children='amzn'),
+    dcc.Graph(id='real-time-amzn-price'),
+    dcc.Graph(id='real-time-amzn-per'),
+
+    html.H3(children='MSFT'),
+    dcc.Graph(id='real-time-msft-price'),
+    dcc.Graph(id='real-time-msft-per'),
     ############################################################################
 
     dcc.Interval(
@@ -64,17 +80,18 @@ app.layout = html.Div([
         interval=1 * 10000,  # 1s
         n_intervals=0,
     )
+
 ])
 
 
 @app.callback(
-    Output('real-time-goog', 'figure'),
+    Output('real-time-goog-price', 'figure'),
     Input('real-time-update', 'n_intervals'))
 def update_figure(n):
     # 改这里读
     # Cassandra
     # df_goog = ...
-    statement = "select * from %s where symbol = '%s'" % (quote_table, symbol)
+    statement = "select * from %s where symbol = '%s'" % (quote_table, 'GOOG')
     res = session.execute(statement)
     # for row in res:
     #     print(row)
@@ -123,13 +140,13 @@ def update_figure(n):
 
 
 @app.callback(
-    Output('real-time-goog-mean', 'figure'),
+    Output('real-time-goog-per', 'figure'),
     Input('real-time-update', 'n_intervals'))
 def update_figure(n):
     # 改这里读
     # Cassandra
     # df_goog = ...
-    statement = "select time, per from %s where symbol = '%s'" % (quote_table, symbol)
+    statement = "select time, per from %s where symbol = '%s'" % (quote_table, 'GOOG')
     res = session.execute(statement)
     # for row in res:
     #     print(row)
@@ -153,9 +170,362 @@ def update_figure(n):
             name='per',
             marker_color=df['color']
         ))
+    return fig
 
-    # fig = px.bar(df, x='time', y='per', name='per', color=df['color'], labels=dict(x="time", y="per %"))
 
+@app.callback(
+    Output('real-time-aapl-price', 'figure'),
+    Input('real-time-update', 'n_intervals'))
+def update_figure(n):
+    # 改这里读
+    # Cassandra
+    # df_goog = ...
+    statement = "select * from %s where symbol = '%s'" % (quote_table, 'AAPL')
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df = df.round(4)
+    # print(df)
+
+    layout = dict(title='Trace',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Price'),  # 总轴坐标
+                  legend=dict(x=1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['close'],
+            name='price'
+        ))
+    # 画第二个图
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['mean'],
+            name='avg',
+            line=dict(dash='dash')
+        ))
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['min'],
+            name='low',
+            line=dict(dash='dash')
+        ))
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['max'],
+            name='high',
+            line=dict(dash='dash')
+        ))
+
+    return fig
+
+
+@app.callback(
+    Output('real-time-aapl-per', 'figure'),
+    Input('real-time-update', 'n_intervals'))
+def update_figure(n):
+    # 改这里读
+    # Cassandra
+    # df_goog = ...
+    statement = "select time, per from %s where symbol = '%s'" % (quote_table, 'AAPL')
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df['color'] = df.apply(lambda x: 'rgba(23,170,23,0.7)' if x.per > 0 else 'rgba(170,23,23,0.7)', axis=1)
+    # print(df)
+    df = df.round(4)
+
+    layout = dict(title='Per',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Per (%)'),  # 总轴坐标
+                  legend=dict(x=1.1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Bar(
+            x=df['time'],
+            y=df['per'],
+            name='per',
+            marker_color=df['color']
+        ))
+    return fig
+
+
+@app.callback(
+    Output('real-time-fb-price', 'figure'),
+    Input('real-time-update', 'n_intervals'))
+def update_figure(n):
+    # 改这里读
+    # Cassandra
+    # df_goog = ...
+    statement = "select * from %s where symbol = '%s'" % (quote_table, 'FB')
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df = df.round(4)
+    # print(df)
+
+    layout = dict(title='Trace',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Price'),  # 总轴坐标
+                  legend=dict(x=1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['close'],
+            name='price'
+        ))
+    # 画第二个图
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['mean'],
+            name='avg',
+            line=dict(dash='dash')
+        ))
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['min'],
+            name='low',
+            line=dict(dash='dash')
+        ))
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['max'],
+            name='high',
+            line=dict(dash='dash')
+        ))
+
+    return fig
+
+
+@app.callback(
+    Output('real-time-fb-per', 'figure'),
+    Input('real-time-update', 'n_intervals'))
+def update_figure(n):
+    # 改这里读
+    # Cassandra
+    # df_goog = ...
+    statement = "select time, per from %s where symbol = '%s'" % (quote_table, 'FB')
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df['color'] = df.apply(lambda x: 'rgba(23,170,23,0.7)' if x.per > 0 else 'rgba(170,23,23,0.7)', axis=1)
+    # print(df)
+    df = df.round(4)
+
+    layout = dict(title='Per',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Per (%)'),  # 总轴坐标
+                  legend=dict(x=1.1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Bar(
+            x=df['time'],
+            y=df['per'],
+            name='per',
+            marker_color=df['color']
+        ))
+    return fig
+
+
+@app.callback(
+    Output('real-time-amzn-price', 'figure'),
+    Input('real-time-update', 'n_intervals'))
+def update_figure(n):
+    # 改这里读
+    # Cassandra
+    # df_goog = ...
+    statement = "select * from %s where symbol = '%s'" % (quote_table, 'AMZN')
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df = df.round(4)
+    # print(df)
+
+    layout = dict(title='Trace',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Price'),  # 总轴坐标
+                  legend=dict(x=1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['close'],
+            name='price'
+        ))
+    # 画第二个图
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['mean'],
+            name='avg',
+            line=dict(dash='dash')
+        ))
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['min'],
+            name='low',
+            line=dict(dash='dash')
+        ))
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['max'],
+            name='high',
+            line=dict(dash='dash')
+        ))
+
+    return fig
+
+
+@app.callback(
+    Output('real-time-amzn-per', 'figure'),
+    Input('real-time-update', 'n_intervals'))
+def update_figure(n):
+    # 改这里读
+    # Cassandra
+    # df_goog = ...
+    statement = "select time, per from %s where symbol = '%s'" % (quote_table, 'AMZN')
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df['color'] = df.apply(lambda x: 'rgba(23,170,23,0.7)' if x.per > 0 else 'rgba(170,23,23,0.7)', axis=1)
+    # print(df)
+    df = df.round(4)
+
+    layout = dict(title='Per',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Per (%)'),  # 总轴坐标
+                  legend=dict(x=1.1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Bar(
+            x=df['time'],
+            y=df['per'],
+            name='per',
+            marker_color=df['color']
+        ))
+    return fig
+
+
+@app.callback(
+    Output('real-time-msft-price', 'figure'),
+    Input('real-time-update', 'n_intervals'))
+def update_figure(n):
+    # 改这里读
+    # Cassandra
+    # df_goog = ...
+    statement = "select * from %s where symbol = '%s'" % (quote_table, 'MSFT')
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df = df.round(4)
+    # print(df)
+
+    layout = dict(title='Trace',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Price'),  # 总轴坐标
+                  legend=dict(x=1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['close'],
+            name='price'
+        ))
+    # 画第二个图
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['mean'],
+            name='avg',
+            line=dict(dash='dash')
+        ))
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['min'],
+            name='low',
+            line=dict(dash='dash')
+        ))
+    fig.add_trace(
+        go.Line(
+            x=df['time'],
+            y=df['max'],
+            name='high',
+            line=dict(dash='dash')
+        ))
+
+    return fig
+
+
+@app.callback(
+    Output('real-time-msft-per', 'figure'),
+    Input('real-time-update', 'n_intervals'))
+def update_figure(n):
+    # 改这里读
+    # Cassandra
+    # df_goog = ...
+    statement = "select time, per from %s where symbol = '%s'" % (quote_table, 'MSFT')
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df['color'] = df.apply(lambda x: 'rgba(23,170,23,0.7)' if x.per > 0 else 'rgba(170,23,23,0.7)', axis=1)
+    # print(df)
+    df = df.round(4)
+
+    layout = dict(title='Per',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Per (%)'),  # 总轴坐标
+                  legend=dict(x=1.1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Bar(
+            x=df['time'],
+            y=df['per'],
+            name='per',
+            marker_color=df['color']
+        ))
     return fig
 
 
@@ -168,8 +538,6 @@ if __name__ == '__main__':
 
     key_space = 'stock'
     quote_table = 'quotes'
-
-    symbol = "GOOG"
 
     session = cassandra_cluster.connect()
     session.set_keyspace(key_space)
