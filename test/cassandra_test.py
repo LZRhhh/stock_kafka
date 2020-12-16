@@ -32,7 +32,7 @@ if __name__ == '__main__':
     #     print(row)
     df = pd.DataFrame(list(res))
     df = df.round(2)
-    print(df['time'])
+    print(df)
     # app = dash.Dash(__name__)
     #
     # app.layout = dash_table.DataTable(

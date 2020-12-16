@@ -33,10 +33,9 @@ app.layout = html.Div([
     dcc.Graph(id='real-time-goog-mean'),
     ############################################################################
 
-
     dcc.Interval(
         id='real-time-update',
-        interval=1*10000,  # 1s
+        interval=1 * 10000,  # 1s
         n_intervals=0,
     )
 ])
@@ -60,7 +59,7 @@ def update_figure(n):
     layout = dict(title='Trace',
                   xaxis=dict(title='Time'),  # 横轴坐标
                   yaxis=dict(title='Price'),  # 总轴坐标
-                  legend=dict(x=1.1, y=1)  # 图例位置
+                  legend=dict(x=1, y=1)  # 图例位置
                   )
 
     fig = go.Figure(layout=layout)
@@ -109,10 +108,27 @@ def update_figure(n):
     # for row in res:
     #     print(row)
     df = pd.DataFrame(list(res))
-    df = df.round(4)
+    df['color'] = df.apply(lambda x: 'rgba(23,170,23,0.7)' if x.per > 0 else 'rgba(170,23,23,0.7)', axis=1)
     # print(df)
+    df = df.round(4)
 
-    fig = px.bar(df, x='time', y='per', labels=dict(x="time", y="per %"))
+    layout = dict(title='Per',
+                  xaxis=dict(title='Time'),  # 横轴坐标
+                  yaxis=dict(title='Per (%)'),  # 总轴坐标
+                  legend=dict(x=1.1, y=1)  # 图例位置
+                  )
+
+    fig = go.Figure(layout=layout)
+    # 画第一个图
+    fig.add_trace(
+        go.Bar(
+            x=df['time'],
+            y=df['per'],
+            name='per',
+            marker_color=df['color']
+        ))
+
+    # fig = px.bar(df, x='time', y='per', name='per', color=df['color'], labels=dict(x="time", y="per %"))
 
     return fig
 
