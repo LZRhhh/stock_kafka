@@ -3,7 +3,7 @@
 '''
 Author: Jin X
 Date: 2020-12-15 15:57:07
-LastEditTime: 2020-12-15 21:02:00
+LastEditTime: 2020-12-16 12:17:15
 '''
 
 from pyspark import SparkContext, SparkConf
@@ -18,13 +18,13 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
 import pandas as pd
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 
-
-with open("./input/daily_GOOG.csv", newline="") as csvfile:
+with open("./input/daily_FB.csv", newline="") as csvfile:
     lines = csv.reader(csvfile, delimiter=',')
     lines = islice(lines, 1, None)
     stocks = [(row[0], float(row[4])) for row in lines]
-# print(stocks)
 conf = SparkConf()
 
 conf.setAppName('dailyAnalysis')
@@ -49,7 +49,6 @@ def floorAndCeil(day):
     return dt.strftime("%Y-%m-%d"), newCeilTime.strftime("%Y-%m-%d")
 
 
-# k = s.reduce(lambda x, y: (x[1] + y[1]))
 
 
 def mapFunc(x):
@@ -66,45 +65,65 @@ def reduceFunc(x, y):
 
 rdd = s.flatMap(mapFunc)
 
-# k.toDF(['time', 'growth']).show()
 
 rdd = rdd.reduceByKey(reduceFunc) \
      .filter(lambda x: abs(x[1]) < 1)
-# k.collect()
-# print(s.glom().collect())
-# print(k.toDF(["Time", "Relative"]).toPandas())
-# k.toDF(['time', 'growth']).show()
 
 pdDF = rdd.toDF(["time", "growth"]).toPandas()
 
-closeInfo = pd.read_csv('./input/daily_GOOG.csv', usecols=['time','close'])
+closeInfo = pd.read_csv('./input/daily_FB.csv', usecols=['time','close'])
 
-pdDF = pd.merge(pdDF, closeInfo, how="left", on="time", copy=False)
-
-
-
-pdDF["color"] = pdDF.apply(lambda x: 'raise' if x.growth > 0 else 'drop', axis=1)
+pdDF = pd.merge(pdDF, closeInfo, how="right", on="time", copy=False)
 
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+pdDF["color"] = pdDF.apply(lambda x: 'rgba(23,170,23,0.7)' if x.growth > 0 else 'rgba(170,23,23,0.7)', axis=1)
 
+pdDF.to_csv("./output/daily_fb.csv", index=0)
 
-fig = px.line(pdDF, x="time", y="close")
-fig.add_bar(x=pdDF['time'], y=pdDF["growth"])
+# external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+# app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+# go_scatter = go.Scatter(x=pdDF['time'], y=pdDF['close'])
+
+# go_bar = go.Bar(x=pdDF['time'], y=pdDF['growth'], marker_color=pdDF['color'],xaxis='x2',yaxis='y2')
+
+# fig = go.Figure(
+#     data=[go_scatter, go_bar],
+#     layout={
+#         "xaxis": {"title": "time", "showgrid": False, "zeroline": False},
+#         "yaxis": {"title": "close", "showgrid": False},
+#         "xaxis2": {"title": "time", "side": "top", "overlaying": "x"},
+#         "yaxis2": {"title": "growth", "side": "right", "overlaying": "y"},
+#     }
+# )
+
+# fig = px.line(pdDF, x="time", y="close")
+# fig.add_bar(x=pdDF['time'], y=pdDF["growth"])
 # fig = px.bar(pdDF, x="time", y="growth", color='color')
 # fig.add_line(x=pdDF['time'], y=pdDF['close'])
+# fig.add_trace(
+#     go.Bar(x=pdDF['time'], y=pdDF['growth'], marker_color=pdDF['color'])
+# )
+# fig.add_trace(
+#     go.Scatter(x=pdDF['time'], y=pdDF['close'])
+# )
+# print(pdDF)
 
 
+# fig.update_layout(
+    
+# )
 
-app.layout = html.Div(children=[
-    html.H1(children='History Stock Analysis'),
-    html.H2(children='GOOG'),
-    dcc.Graph(
-        id='example-graph',
-        figure=fig
-    )
-])
 
-app.run_server(debug=False, port=8085)
+# app.layout = html.Div(children=[
+#     html.H1(children='History Stock Analysis'),
+#     html.H2(children='GOOG'),
+#     dcc.Graph(
+#         id='example-graph',
+#         figure=fig
+#     )
+# ])
+
+# app.run_server(debug=False, port=8085)
