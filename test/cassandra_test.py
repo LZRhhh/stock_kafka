@@ -26,13 +26,13 @@ if __name__ == '__main__':
     session.set_keyspace(key_space)
 
     df = pd.DataFrame()
-    statement = "select * from %s" % quote_table
+    statement = "select * from %s where symbol = 'GOOG'" % quote_table
     res = session.execute(statement)
     # for row in res:
     #     print(row)
     df = pd.DataFrame(list(res))
     df = df.round(2)
-    print(df)
+    print(df['time'])
     # app = dash.Dash(__name__)
     #
     # app.layout = dash_table.DataTable(

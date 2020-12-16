@@ -106,7 +106,8 @@ def process_stream(rdd, tmp):
     print('%-10s%-10s%-10s%-10s%-10s%-10s%-10s' % ('SYMBOL', 'OPEN', 'LOW', 'HIGH', 'CLOSE', 'AVERAGE', 'PER'))
     for symbol in symbols:
         print('%-10s%-10s%-10s%-10s%-10s%-10s%-10s' % (symbol, opens[symbol][0], mins[symbol], maxs[symbol],
-                                                       closes[symbol][0], round(means[symbol], 2), pers[symbol]))
+                                                       closes[symbol][0], round(means[symbol], 2),
+                                                       round(pers[symbol], 2)))
 
         persist_stat(symbol,
                      datetime.now().replace(second=0, microsecond=0),
@@ -118,15 +119,15 @@ def process_stream(rdd, tmp):
                      pers[symbol])
     tmp[0] = queue
 
-
     # session.execute(
     #     "CREATE TABLE %s (symbol text, time timestamp, open float, min float, max float, close float, mean float, "
     #     "per float, PRIMARY KEY (symbol, time))" % quote_table)
 
+
 def persist_stat(symbol, time, open, min, max, close, mean, per):
     # print(quote_table, symbol, str(time), open, min, max, close, mean, float(per.split('%')[0]))
     statement = "INSERT INTO %s (symbol, time, open, min, max, close, mean, per) " \
-                "VALUES ('%s', '%s', %f, %f, %f, %f, %f, %f)"\
+                "VALUES ('%s', '%s', %f, %f, %f, %f, %f, %f)" \
                 % (quote_table, symbol, str(time), open, min, max, close, mean, float(per.split('%')[0]))
     session.execute(statement)
     return
