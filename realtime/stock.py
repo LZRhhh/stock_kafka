@@ -13,14 +13,16 @@ def get_quote(symbol):
     res = requests.get(url=base_url, params=params)
     line = res.text
     # print('Data received: ' + symbol)
-    strs = re.findall(",(.*?),", line)
-    price = strs[0]
-    time = get_time(strs[12])
+    strs = line.split(',')
+    # print(strs)
+    # print(strs[-10])
+    price = strs[1]
+    time = get_time(strs[-9])
     return symbol, price, time
 
 
 def get_time(str):
-
+    # print(str)
     # Dec 11 04:00PM EST
     month, day, clock, zone = str.split(' ')
     month = map[month]

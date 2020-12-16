@@ -3,7 +3,7 @@
 '''
 Author: Jin X
 Date: 2020-12-15 21:22:19
-LastEditTime: 2020-12-16 12:18:31
+LastEditTime: 2020-12-16 12:20:20
 '''
 import dash
 import dash_core_components as dcc
@@ -14,6 +14,7 @@ import plotly.graph_objects as go
 
 import pandas as pd
 
+from cassandra.cluster import Cluster
 
 def readFig(symbol):
     df = pd.read_csv('./output/daily_{}.csv'.format(symbol))
@@ -50,6 +51,7 @@ app.layout = html.Div([
     readFig("FB"),
     readFig("AAPL"),
     readFig("MSFT"),
+    ############################################################################
 
     html.H2(children='Real-Time'),
     html.H3(children='GOOG'),
@@ -57,11 +59,9 @@ app.layout = html.Div([
     ############################################################################
 
 
-
-
     dcc.Interval(
         id='real-time-update',
-        interval=1*1000,  # 1s
+        interval=1*10000,  # 1s
         n_intervals=0,
     )
 ])
@@ -74,10 +74,30 @@ def update_figure(n):
     # 改这里读
     # Cassandra
     # df_goog = ...
-    fig = px.line(df_goog,x='...',y='...')
+    statement = "select * from %s where symbol = '%s'" % (quote_table, symbol)
+    res = session.execute(statement)
+    # for row in res:
+    #     print(row)
+    df = pd.DataFrame(list(res))
+    df = df.round(4)
+    # print(df)
+    fig = px.line(df, x='time', y='close')
     return fig
 
 
 if __name__ == '__main__':
     # app.run_server(debug=True)
+    contact_points = ['localhost']
+    cassandra_cluster = Cluster(
+        contact_points=contact_points  # many servers, using ',' to split them
+    )
+
+    key_space = 'stock'
+    quote_table = 'quotes'
+
+    symbol = "GOOG"
+
+    session = cassandra_cluster.connect()
+    session.set_keyspace(key_space)
+
     app.run_server(debug=False)

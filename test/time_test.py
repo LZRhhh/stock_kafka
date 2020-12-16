@@ -5,7 +5,7 @@ def convert_hour(hour):
     return (hour+24-13) % 24
 
 
-delta = dt.timedelta(hours=13)
-now = datetime.today() - delta
-print(now)
+time = datetime.now().replace(second=0, microsecond=0)
+
+print(str(time))
 
